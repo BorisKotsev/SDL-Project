@@ -13,7 +13,7 @@ int main(int argc, char* argv[])
 		SDL_WINDOWPOS_UNDEFINED, SDL_WINDOWPOS_UNDEFINED, 
 		1920, 1080, 0);
 
-	SDL_Renderer* mainRenderer = SDL_CreateRenderer(mainWindow, -1, SDL_RENDERER_PRESENTVSYNC);
+	SDL_Renderer* mainRenderer = SDL_CreateRenderer(mainWindow, -1, SDL_RENDERER_PRESENTVSYNC); 
 		
 	SDL_SetRenderDrawColor(mainRenderer, 17, 242, 47, 255); //Backgorund
 	SDL_RenderClear(mainRenderer); //Clear the render
