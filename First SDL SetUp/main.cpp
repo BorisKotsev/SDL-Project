@@ -1,5 +1,6 @@
 ﻿#include <iostream>
 #include <SDL.h>
+#include <fstream>
 
 #undef main
 
@@ -11,75 +12,83 @@ int main(int argc, char* argv[])
 	
 	SDL_Window* mainWindow = SDL_CreateWindow("Title", 
 		SDL_WINDOWPOS_UNDEFINED, SDL_WINDOWPOS_UNDEFINED, 
-		1920, 1080, 0);
+		1366, 768, 0);
 
 	SDL_Renderer* mainRenderer = SDL_CreateRenderer(mainWindow, -1, SDL_RENDERER_PRESENTVSYNC); 
-		
-	SDL_SetRenderDrawColor(mainRenderer, 17, 242, 47, 255); //Backgorund
-	SDL_RenderClear(mainRenderer); //Clear the render
-
-	SDL_SetRenderDrawColor(mainRenderer, 0, 0, 255, 20);// The color of the line
-	SDL_RenderDrawLine(mainRenderer, 480, 360, 1200, 720);
-	SDL_RenderDrawLine(mainRenderer, 120, 360, 1200, 720);
-
-	SDL_Surface* surface = SDL_LoadBMP("img\\background.bmp");
-	SDL_Texture* background = SDL_CreateTextureFromSurface(mainRenderer, surface);
-	SDL_FreeSurface(surface);
-
-	surface = SDL_LoadBMP("img\\snimka.bmp");
-	SDL_Texture* texture2 = SDL_CreateTextureFromSurface(mainRenderer, surface);
-	SDL_FreeSurface(surface);
 	
-	SDL_RenderCopy(mainRenderer, background, NULL, NULL); 
+	//Improve Renderer
+	SDL_DisplayMode DM;
+	SDL_GetCurrentDisplayMode(0, &DM);
 
-	SDL_Rect dstRect = {300, 300, 225, 225};
-	SDL_RenderCopy(mainRenderer, texture2, NULL, &dstRect);
+	auto desktopWidth = DM.w;
+	auto desktopHeight = DM.h;
 
-	SDL_Rect srcRect;
+	if (SDL_SetWindowFullscreen(mainWindow, SDL_WINDOW_FULLSCREEN_DESKTOP) < 0)
+	{
+		cout << "SDL Renderer improve failed!" << SDL_GetError();
+	}
 
-	srcRect.x = 200;
-	srcRect.y = 200;
-	srcRect.w = 600;
-	srcRect.h = 600;
+	SDL_RenderSetLogicalSize(mainRenderer, 1920, 1080);
+	SDL_SetHint(SDL_HINT_RENDER_SCALE_QUALITY, "1");
 
-	surface = SDL_LoadBMP("img\\art.bmp");
-	SDL_Texture* texture3 = SDL_CreateTextureFromSurface(mainRenderer, surface);
-	SDL_FreeSurface(surface);
+	SDL_Rect dstRect, srcRect, imageValues;
 
-	SDL_RenderCopy(mainRenderer, texture3, &srcRect, &dstRect);
+	string imgName, temp;
 
-	SDL_Rect vikingDstRect = { 500, 500, 220, 170};
-	SDL_Rect vikingSrcRect = {0, 0, 22, 17};
+	fstream stream;
 
-	surface = SDL_LoadBMP("img\\LEFT.bmp");
-	SDL_Texture* viking = SDL_CreateTextureFromSurface(mainRenderer, surface);
-	SDL_FreeSurface(surface);
+	stream.open("config\\init.txt"); // Open the file
+
+	stream >> temp >> imgName; //Read the image name
+	stream >> temp >> dstRect.x >> dstRect.y >> dstRect.w >> dstRect.h; //Read the dstrect value
+	stream >> temp >> srcRect.x >> srcRect.y >> srcRect.w >> srcRect.h; //Read the srcrect value
+	stream >> temp >> imageValues.x >> imageValues.y >> imageValues.w >> imageValues.h; //Read the srcrect value
+					//width            height           rows             cols 
+
+	stream.close(); //Close the file
+
+	int xMargin = imageValues.x / imageValues.h;
+	int yMargin = imageValues.y / imageValues.w;
+
+	SDL_Surface* loadingSurface = SDL_LoadBMP(imgName.c_str());
+
+	SDL_Texture* vikingTexture = SDL_CreateTextureFromSurface(mainRenderer, loadingSurface);
+
+	SDL_FreeSurface(loadingSurface);
 
 	while(true)
 	{ 
-		SDL_RenderCopy(mainRenderer, viking, &vikingSrcRect, &vikingDstRect);
-
-		vikingSrcRect.x += 22;
-		vikingDstRect.x += 22;
-
-		if (vikingDstRect.x > 1920)
-		{
-			vikingDstRect.x = 100;
-		}
-
-		if (vikingSrcRect.x > 176)
-		{
-			vikingSrcRect.x = 0;
-		}
+		SDL_RenderCopy(mainRenderer, vikingTexture, &srcRect, &dstRect); 
 
 		SDL_RenderPresent(mainRenderer); // Draw the render
+		if (srcRect.y <= yMargin * 2) 
+		{
+			srcRect.x += xMargin;
+		}
+
+		if (srcRect.x > xMargin * 2 && srcRect.y == 0) //Row 1
+		{
+			srcRect.y += yMargin;
+			srcRect.x = 0;
+		}
+
+		if (srcRect.x > xMargin * 7 && srcRect.y == yMargin) //Row 2
+		{
+			srcRect.y += yMargin;
+			srcRect.x = 0;
+		}
+
+		if (srcRect.x > xMargin * 7 && srcRect.y == yMargin * 2) //Row 3
+		{
+			srcRect.y += yMargin;
+			srcRect.x = 0;
+		}
+
+		cout << srcRect.x << " " << srcRect.y << endl;
 
 		SDL_RenderClear(mainRenderer); // Clear what you have drawn
-		SDL_Delay(70); // Slow the program
+		SDL_Delay(100); // Slow the program
 	}
-
-
-	SDL_Delay(10000);
 
 	return 0;
 }

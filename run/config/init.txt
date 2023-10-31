@@ -1,0 +1,4 @@
+Image_Name: img\\Viking.bmp
+Viking_dstRect: 100 100 200 200
+Viking_srcRect: 0 0 22 17
+Img_Values: 176 102 6 8
