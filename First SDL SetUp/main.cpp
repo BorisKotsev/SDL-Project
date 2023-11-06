@@ -6,17 +6,14 @@
 
 using namespace std;
 
-int main(int argc, char* argv[])
-{
-	SDL_Init(SDL_INIT_EVERYTHING);
-	
-	SDL_Window* mainWindow = SDL_CreateWindow("Title", 
-		SDL_WINDOWPOS_UNDEFINED, SDL_WINDOWPOS_UNDEFINED, 
-		1366, 768, 0);
+SDL_Window* mainWindow = SDL_CreateWindow("Title",
+	SDL_WINDOWPOS_UNDEFINED, SDL_WINDOWPOS_UNDEFINED,
+	1366, 768, 0);
 
-	SDL_Renderer* mainRenderer = SDL_CreateRenderer(mainWindow, -1, SDL_RENDERER_PRESENTVSYNC); 
-	
-	//Improve Renderer
+SDL_Renderer* mainRenderer = SDL_CreateRenderer(mainWindow, -1, SDL_RENDERER_PRESENTVSYNC);
+
+void improveRenderer()
+{
 	SDL_DisplayMode DM;
 	SDL_GetCurrentDisplayMode(0, &DM);
 
@@ -30,7 +27,43 @@ int main(int argc, char* argv[])
 
 	SDL_RenderSetLogicalSize(mainRenderer, 1920, 1080);
 	SDL_SetHint(SDL_HINT_RENDER_SCALE_QUALITY, "1");
+}
 
+SDL_Texture* loadTexture(string imgPath)
+{
+	string tmpImg = "img\\" + imgPath;
+
+	SDL_Surface* loadingSurface = SDL_LoadBMP(tmpImg.c_str());
+
+	SDL_Texture* texture = SDL_CreateTextureFromSurface(mainRenderer, loadingSurface);
+
+	if (texture == nullptr)
+	{
+		tmpImg = "img\\Null.bmp";
+
+		loadingSurface = SDL_LoadBMP(tmpImg.c_str());
+
+		texture = SDL_CreateTextureFromSurface(mainRenderer, loadingSurface);
+	}
+
+	SDL_FreeSurface(loadingSurface);
+
+	return texture;
+}
+
+bool isMouseInRect(int mouseX, int mouseY, SDL_Rect rect) //FINISH
+{
+	return false;
+}
+
+int main(int argc, char* argv[])
+{
+	SDL_Init(SDL_INIT_EVERYTHING);
+	
+	improveRenderer();
+	
+	//Improve Renderer
+	
 	SDL_Rect dstRect, srcRect, imageValues;
 
 	string imgName, temp;
@@ -50,15 +83,46 @@ int main(int argc, char* argv[])
 	int xMargin = imageValues.x / imageValues.h;
 	int yMargin = imageValues.y / imageValues.w;
 
-	SDL_Surface* loadingSurface = SDL_LoadBMP(imgName.c_str());
+	SDL_Texture* vikingTexture = loadTexture(imgName);
 
-	SDL_Texture* vikingTexture = SDL_CreateTextureFromSurface(mainRenderer, loadingSurface);
+	SDL_Event sdlEvent;
 
-	SDL_FreeSurface(loadingSurface);
+	bool isRunning = true;
 
-	while(true)
+	int escapeCode = 41;
+
+	while (isRunning)
+	{
+		while (SDL_PollEvent(&sdlEvent))
+		{
+			switch (sdlEvent.type)
+			{
+			case SDL_QUIT:
+				isRunning = false;
+				break;
+			case SDL_KEYDOWN:
+				if (sdlEvent.key.keysym.scancode == SDL_Scancode(escapeCode))
+				{
+					SDL_Quit(); // doesnt close the console
+					//isRunning = false; //closes everything
+				}
+				break;
+			case SDL_MOUSEMOTION:
+				cout << sdlEvent.motion.x << " " << sdlEvent.motion.y << endl;
+
+				SDL_SetRenderDrawColor(mainRenderer, sdlEvent.motion.x, sdlEvent.motion.y, 100, 255);
+				break;
+			default:
+				break;
+			}
+		}
+		SDL_RenderClear(mainRenderer);
+		SDL_RenderPresent(mainRenderer);
+	}
+
+	/*while(true)
 	{ 
-		SDL_RenderCopy(mainRenderer, vikingTexture, &srcRect, &dstRect); 
+		SDL_RenderCopy(mainRenderer, vikingTexture, NULL, &dstRect); 
 
 		SDL_RenderPresent(mainRenderer); // Draw the render
 		if (srcRect.y <= yMargin * 2) 
@@ -77,18 +141,16 @@ int main(int argc, char* argv[])
 			srcRect.y += yMargin;
 			srcRect.x = 0;
 		}
-
+		 
 		if (srcRect.x > xMargin * 7 && srcRect.y == yMargin * 2) //Row 3
 		{
 			srcRect.y += yMargin;
 			srcRect.x = 0;
 		}
 
-		cout << srcRect.x << " " << srcRect.y << endl;
-
 		SDL_RenderClear(mainRenderer); // Clear what you have drawn
 		SDL_Delay(100); // Slow the program
-	}
+	}*/
 
 	return 0;
 }
