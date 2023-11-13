@@ -51,8 +51,13 @@ SDL_Texture* loadTexture(string imgPath)
 	return texture;
 }
 
-bool isMouseInRect(int mouseX, int mouseY, SDL_Rect rect) //FINISH
+bool isMouseInRect(int mouseX, int mouseY, SDL_Rect rect) 
 {
+	if (mouseX >= rect.x && mouseX <= rect.x + rect.w && mouseY >= rect.y && mouseY <= rect.y + rect.h)
+	{
+		return true;
+	}
+
 	return false;
 }
 
